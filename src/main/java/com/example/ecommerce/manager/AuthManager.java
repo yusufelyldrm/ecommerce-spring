@@ -1,5 +1,6 @@
 package com.example.ecommerce.manager;
 
+import com.example.ecommerce.enums.Role;
 import com.example.ecommerce.models.Token;
 import com.example.ecommerce.models.User;
 import com.example.ecommerce.repository.TokenRepository;
@@ -9,9 +10,9 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 
 import java.util.Date;
+import java.util.Objects;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -21,21 +22,19 @@ public class AuthManager {
     private String jwtSecret;
 
     @Value("${jwt.expiration}")
-    private String jwtExpirationMs;
+    private int jwtExpirationMs;
 
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
     private final TokenRepository tokenRepository;
 
-    public AuthManager(UserRepository userRepository, PasswordEncoder passwordEncoder, TokenRepository tokenRepository) {
+    public AuthManager(UserRepository userRepository, TokenRepository tokenRepository) {
         this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
         this.tokenRepository = tokenRepository;
     }
 
-    public String generateToken(String username, String role) {
+    public String generateToken(String email, String role) {
         return Jwts.builder()
-                .setSubject(username)
+                .setSubject(email)
                 .claim("role", role)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + jwtExpirationMs))
@@ -51,7 +50,10 @@ public class AuthManager {
             return "Invalid credentials";
         }
 
-        return generateToken(user.getUsername(), String.valueOf(user.getRole()));
+        if (user.getRole() == null) user.setRole(Role.USER);
+        String token = generateToken(user.getEmail(), String.valueOf(user.getRole()));
+
+        return token;
     }
 
     public boolean authenticate(Token token) throws Exception {
@@ -60,15 +62,11 @@ public class AuthManager {
             return false;
         }
 
-        if (isTokenExpired(tokenDb.getToken())) {
-            return false;
-        }
-
-        return true;
+        return !isTokenExpired(tokenDb.getToken());
     }
 
     public boolean checkLoginCredentials(String email, String password, User user) {
-        return user != null && passwordEncoder.matches(password, user.getPassword());
+        return user != null && Objects.equals(password, user.getPassword());
     }
 
     public boolean isTokenExpired(String token) {
@@ -81,6 +79,18 @@ public class AuthManager {
             return expiration.before(new Date());
         } catch (Exception e) {
             return true;
+        }
+    }
+
+    public boolean checkTokenValidation(String token, String email, Role role) {
+        try {
+            Claims claims = Jwts.parser()
+                    .setSigningKey(jwtSecret)
+                    .parseClaimsJws(token)
+                    .getBody();
+            return claims.getSubject().equals(email) && claims.get("role").equals(role.toString());
+        } catch (Exception e) {
+            return false;
         }
     }
 }
