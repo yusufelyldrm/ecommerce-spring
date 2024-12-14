@@ -1,6 +1,7 @@
 package com.example.ecommerce.models;
 
 import com.example.ecommerce.enums.Role;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -26,6 +27,10 @@ public class User {
     @Enumerated(EnumType.STRING)
     private Role role;
 
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    @JsonIgnore
+    private Cart cart;
+
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
@@ -33,8 +38,4 @@ public class User {
     protected void onCreate() {
         createdAt = LocalDateTime.now();
     }
-
-    //created_at
-    //updated_at
-
 }

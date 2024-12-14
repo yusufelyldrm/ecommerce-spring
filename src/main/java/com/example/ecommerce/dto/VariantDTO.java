@@ -14,11 +14,17 @@ public class VariantDTO {
     private String code;
 
     @JsonProperty("stock")
-    private String stock;
+    private Integer stock;
+
+    @JsonProperty("description")
+    private String description;
+
+    @JsonProperty("color")
+    private String color;
 
     @JsonProperty("size")
     private String size;
 
     @JsonProperty("price")
-    private String price;
+    private Long price;
 }

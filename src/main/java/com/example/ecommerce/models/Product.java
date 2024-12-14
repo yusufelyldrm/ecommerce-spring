@@ -1,5 +1,6 @@
 package com.example.ecommerce.models;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -22,6 +23,7 @@ public class Product {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "product_data_id")
+    @JsonManagedReference
     private ProductData productData;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.LAZY)

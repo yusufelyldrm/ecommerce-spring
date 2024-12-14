@@ -13,9 +13,9 @@ public class ProductVariant {
     private Long id;
 
     private String code;
-    private String stock;
+    private Integer stock;
     private String size;
-    private String price;
+    private Long price;
 
     //bir variant sadece bir pdoructa bağlı olabilir
     @ManyToOne(fetch = FetchType.EAGER)
