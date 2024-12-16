@@ -33,4 +33,12 @@ public class Product {
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Schema(description = "Product variants", required = true)
     private List<ProductVariant> variants;
+
+    public void updateWith(Product product) {
+        this.name = product.getName();
+        this.color = product.getColor();
+        this.gender = product.getGender();
+        this.description = product.getDescription();
+        this.variants = product.getVariants();
+    }
 }

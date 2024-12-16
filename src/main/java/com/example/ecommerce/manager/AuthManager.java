@@ -68,7 +68,7 @@ public class AuthManager {
         return token;
     }
 
-    public boolean authenticate(String token, Role expectedRole) throws Exception {
+    public boolean authenticate(String token, Role expectedRole){
         if (token.startsWith("Bearer ")) {
             token = token.substring(7);
         }
@@ -123,12 +123,16 @@ public class AuthManager {
     }
 
     public User getUserFromToken(String token) {
+        if (token.startsWith("Bearer ")) {
+            token = token.substring(7);
+        }
         try {
             Claims claims = Jwts.parser()
                     .setSigningKey(jwtSecret)
                     .parseClaimsJws(token)
                     .getBody();
             String email = claims.getSubject();
+            System.out.println("email: " + email);
             return userRepository.findUserByEmail(email);
         } catch (Exception e) {
             return null;

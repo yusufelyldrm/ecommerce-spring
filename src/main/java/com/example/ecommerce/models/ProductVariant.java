@@ -30,4 +30,11 @@ public class ProductVariant {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "product_id")
     private Product product;
+
+    public void updateWith(ProductVariant productVariant) {
+        this.code = productVariant.getCode();
+        this.stock = productVariant.getStock();
+        this.size = productVariant.getSize();
+        this.price = productVariant.getPrice();
+    }
 }
