@@ -2,9 +2,11 @@ package com.example.ecommerce.service;
 
 import com.example.ecommerce.dto.AddCartDTO;
 import com.example.ecommerce.dto.RemoveCartDTO;
+import com.example.ecommerce.manager.AuthManager;
 import com.example.ecommerce.models.Cart;
 import com.example.ecommerce.models.CartItem;
 import com.example.ecommerce.models.ProductVariant;
+import com.example.ecommerce.models.User;
 import com.example.ecommerce.repository.CartItemRepository;
 import com.example.ecommerce.repository.CartRepository;
 import com.example.ecommerce.repository.ProductRepository;
@@ -19,13 +21,15 @@ public class CartService {
     private final ProductRepository productRepository;
     private final VariantRepository variantRepository;
     private final CartItemRepository cartItemRepository;
+    private final AuthManager authManager;
 
-    public CartService(CartRepository cartRepository, UserService userService, ProductRepository productRepository, VariantRepository variantRepository, CartItemRepository cartItemRepository) {
+    public CartService(CartRepository cartRepository, UserService userService, ProductRepository productRepository, VariantRepository variantRepository, CartItemRepository cartItemRepository, AuthManager authManager) {
         this.cartRepository = cartRepository;
         this.userService = userService;
         this.productRepository = productRepository;
         this.variantRepository = variantRepository;
         this.cartItemRepository = cartItemRepository;
+        this.authManager = authManager;
     }
 
     public Cart createCart(String email) {
@@ -37,8 +41,9 @@ public class CartService {
         return cart;
     }
 
-    public void addToCart(AddCartDTO addCartDTO) {
-        Cart cart = cartRepository.findByUserId(Math.toIntExact(addCartDTO.getUserId()));
+    public void addToCart(AddCartDTO addCartDTO, String token) {
+        User user = authManager.getUserFromToken(token);
+        Cart cart = cartRepository.findByUserId(user.getId());
 
         ProductVariant variant = variantRepository.findProductVariantById(addCartDTO.getProductVariantId());
 
@@ -61,8 +66,9 @@ public class CartService {
         cartRepository.save(cart);
     }
 
-    public void removeFromCart(RemoveCartDTO removeCartDTO) {
-        Cart cart = cartRepository.findCartByUserEmail(removeCartDTO.getEmail());
+    public void removeFromCart(RemoveCartDTO removeCartDTO, String token) {
+        User user = authManager.getUserFromToken(token);
+        Cart cart = cartRepository.findCartByUserEmail(user.getEmail());
 
         ProductVariant productVariant = variantRepository.findProductVariantById(removeCartDTO.getProductVariantId());
         CartItem cartItem = cartItemRepository.findCartItemByProductVariantAndCart(productVariant, cart);
@@ -84,8 +90,9 @@ public class CartService {
         cartRepository.save(cart);
     }
 
-    public Cart listCart(Integer userId) {
-        return cartRepository.findByUserId(Math.toIntExact(userId));
+    public Cart listCart(String token) {
+        User user = authManager.getUserFromToken(token);
+        return cartRepository.findByUserId(user.getId());
     }
 
 

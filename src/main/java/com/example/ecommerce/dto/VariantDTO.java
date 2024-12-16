@@ -16,12 +16,6 @@ public class VariantDTO {
     @JsonProperty("stock")
     private Integer stock;
 
-    @JsonProperty("description")
-    private String description;
-
-    @JsonProperty("color")
-    private String color;
-
     @JsonProperty("size")
     private String size;
 

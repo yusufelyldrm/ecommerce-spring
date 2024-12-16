@@ -1,17 +1,16 @@
 package com.example.ecommerce.controller;
 
 import com.example.ecommerce.dto.*;
+import com.example.ecommerce.enums.Role;
+import com.example.ecommerce.manager.AuthManager;
 import com.example.ecommerce.models.Cart;
-import com.example.ecommerce.models.CartItem;
 import com.example.ecommerce.repository.ProductRepository;
 import com.example.ecommerce.repository.VariantRepository;
 import com.example.ecommerce.service.CartService;
 import com.example.ecommerce.service.UserService;
-import org.apache.coyote.Response;
+import com.example.ecommerce.util.ConvertDTO;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.ArrayList;
 
 @RestController
 @RequestMapping("/api/cart")
@@ -25,57 +24,47 @@ public class CartController {
     private final ProductRepository productRepository;
     private final VariantRepository variantRepository;
 
+    private final AuthManager authManager;
 
-    public CartController(CartService cartService, UserService userService, ProductRepository productRepository, VariantRepository variantRepository) {
+
+    public CartController(CartService cartService, UserService userService, ProductRepository productRepository, VariantRepository variantRepository, AuthManager authManager) {
         this.cartService = cartService;
         this.userService = userService;
         this.productRepository = productRepository;
         this.variantRepository = variantRepository;
+        this.authManager = authManager;
     }
 
     @PostMapping("/add")
-    public ResponseEntity addToCart(@RequestBody AddCartDTO addCartDTO) {
-        cartService.addToCart(addCartDTO);
+    public ResponseEntity addToCart(@RequestBody AddCartDTO addCartDTO, @RequestHeader("Authorization") String token) throws Exception {
+        boolean is_auth =authManager.authenticate(token, null);
+        if(!is_auth){
+            return ResponseEntity.badRequest().body("User not authenticated");
+        }
+
+        cartService.addToCart(addCartDTO,token);
         return ResponseEntity.ok("Product added to cart successfully");
+
     }
 
     @PostMapping("/remove")
-    public ResponseEntity removeFromCart(@RequestBody RemoveCartDTO removeCartDTO) {
-        cartService.removeFromCart(removeCartDTO);
+    public ResponseEntity removeFromCart(@RequestBody RemoveCartDTO removeCartDTO,@RequestHeader("Authorization") String token) throws Exception {
+        boolean is_auth =authManager.authenticate(token, null);
+        if(!is_auth){
+            return ResponseEntity.badRequest().body("User not authenticated");
+        }
+        cartService.removeFromCart(removeCartDTO, token);
         return ResponseEntity.ok("Product removed from cart successfully");
     }
 
-    @GetMapping("/list/{userId}")
-    public ResponseEntity<CartListDTO> listCart(@PathVariable Integer userId) {
-        Cart cart = cartService.listCart(userId);
-        CartListDTO cartListDTO = new CartListDTO();
-        CartItemDTO cartItemDTO = new CartItemDTO();
-        VariantDTO variantDTO = new VariantDTO();
-        ArrayList<CartItemDTO> cartItemDTOS = new ArrayList<>();
-
-        for (CartItem cartItem : cart.getCartItems()) {
-            cartItemDTO.setId(cartItem.getId());
-            cartItemDTO.setPrice(cartItem.getPrice());
-            cartItemDTO.setQuantity(cartItem.getQuantity());
-            cartItemDTO.setDescription(cartItem.getProductVariant().getProduct().getDescription());
-            cartItemDTO.setColor(cartItem.getProductVariant().getProduct().getColor());
-
-            variantDTO.setId(cartItem.getProductVariant().getId());
-            variantDTO.setPrice(cartItem.getProductVariant().getPrice());
-            variantDTO.setCode(cartItem.getProductVariant().getCode());
-            variantDTO.setStock(cartItem.getProductVariant().getStock());
-            variantDTO.setSize(cartItem.getProductVariant().getSize());
-
-            cartItemDTO.setProductVariantDTO(variantDTO);
-
-            cartItemDTOS.add(cartItemDTO);
+    @GetMapping("/list")
+    public ResponseEntity listCart(@RequestHeader("Authorization") String token) throws Exception {
+        boolean is_auth =authManager.authenticate(token, null);
+        if(!is_auth){
+            return ResponseEntity.badRequest().body("User not authenticated");
         }
-
-        cartListDTO.setId(cart.getId());
-        cartListDTO.setTotalPrice(cart.getTotalPrice());
-
-        cartListDTO.setCartItemDTOS(cartItemDTOS);
-
+        Cart cart = cartService.listCart(token);
+        CartListDTO cartListDTO =ConvertDTO.CartListToDTO(cart);
         return ResponseEntity.ok(cartListDTO);
     }
 

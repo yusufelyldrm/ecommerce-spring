@@ -7,9 +7,12 @@ import lombok.Setter;
 @Setter
 public class CartItemDTO {
     private Long id;
-    private Integer quantity;
     private String description;
+    private String name;
+    private String gender;
     private String color;
-    private Long price;
-    private VariantDTO productVariantDTO;
+    private String size;
+    private String code;
+    private Integer quantity;
+    private Long totalPrice;
 }

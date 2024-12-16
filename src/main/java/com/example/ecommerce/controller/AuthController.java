@@ -3,6 +3,7 @@ package com.example.ecommerce.controller;
 import com.example.ecommerce.dto.LoginRequestDTO;
 import com.example.ecommerce.dto.LoginResponseDTO;
 import com.example.ecommerce.dto.RegisterRequestDTO;
+import com.example.ecommerce.enums.Role;
 import com.example.ecommerce.manager.AuthManager;
 import com.example.ecommerce.models.Cart;
 import com.example.ecommerce.models.User;
@@ -39,6 +40,7 @@ public class AuthController {
         user.setEmail(registerRequestDTO.getEmail());
         user.setUsername(registerRequestDTO.getUsername());
         user.setPassword(registerRequestDTO.getPassword());
+        user.setRole(Role.USER);
 
         userService.saveUser(user);
 

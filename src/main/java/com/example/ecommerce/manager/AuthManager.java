@@ -50,23 +50,51 @@ public class AuthManager {
             return "Invalid credentials";
         }
 
-        if (user.getRole() == null) user.setRole(Role.USER);
+        if (user.getToken() != null) {
+            Token token = tokenRepository.findTokenByToken(user.getToken().getToken());
+            if (token != null && !isTokenExpired(token.getToken())) {
+                return token.getToken();
+            }
+        }
+
         String token = generateToken(user.getEmail(), String.valueOf(user.getRole()));
+
+        Token newToken = new Token(token, user);
+        user.setToken(newToken);
+
+        tokenRepository.save(newToken);
+        userRepository.save(user);
 
         return token;
     }
 
-    public boolean authenticate(Token token) throws Exception {
-        Token tokenDb = tokenRepository.findByToken(token);
-        if (tokenDb == null) {
+    public boolean authenticate(String token, Role expectedRole) throws Exception {
+        if (token.startsWith("Bearer ")) {
+            token = token.substring(7);
+        }
+
+        Token tokenDb = tokenRepository.findTokenByToken(token);
+        String email = tokenDb.getUser().getEmail();
+
+        System.out.println("sıkıntı yok 0 ");
+
+        if (expectedRole != null && !checkTokenValidation(tokenDb.getToken(), email, expectedRole)) {
+            System.out.println("sıkıntı yok 1 " + tokenDb.getToken() + " " + email + " " + expectedRole + " " + tokenDb.getUser().getRole());
             return false;
         }
 
-        return !isTokenExpired(tokenDb.getToken());
+        System.out.println("sıkıntı yookk");
+
+        if (isTokenExpired(token)) {
+            System.out.println("Token expired");
+            return false;
+        }
+
+        return true;
     }
 
     public boolean checkLoginCredentials(String email, String password, User user) {
-        return user != null && Objects.equals(password, user.getPassword());
+        return user != null && Objects.equals(password, user.getPassword()) && Objects.equals(email, user.getEmail());
     }
 
     public boolean isTokenExpired(String token) {
@@ -91,6 +119,19 @@ public class AuthManager {
             return claims.getSubject().equals(email) && claims.get("role").equals(role.toString());
         } catch (Exception e) {
             return false;
+        }
+    }
+
+    public User getUserFromToken(String token) {
+        try {
+            Claims claims = Jwts.parser()
+                    .setSigningKey(jwtSecret)
+                    .parseClaimsJws(token)
+                    .getBody();
+            String email = claims.getSubject();
+            return userRepository.findUserByEmail(email);
+        } catch (Exception e) {
+            return null;
         }
     }
 }
