@@ -76,17 +76,11 @@ public class AuthManager {
         Token tokenDb = tokenRepository.findTokenByToken(token);
         String email = tokenDb.getUser().getEmail();
 
-        System.out.println("sıkıntı yok 0 ");
-
         if (expectedRole != null && !checkTokenValidation(tokenDb.getToken(), email, expectedRole)) {
-            System.out.println("sıkıntı yok 1 " + tokenDb.getToken() + " " + email + " " + expectedRole + " " + tokenDb.getUser().getRole());
             return false;
         }
 
-        System.out.println("sıkıntı yookk");
-
         if (isTokenExpired(token)) {
-            System.out.println("Token expired");
             return false;
         }
 
@@ -132,7 +126,6 @@ public class AuthManager {
                     .parseClaimsJws(token)
                     .getBody();
             String email = claims.getSubject();
-            System.out.println("email: " + email);
             return userRepository.findUserByEmail(email);
         } catch (Exception e) {
             return null;
