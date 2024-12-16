@@ -40,7 +40,12 @@ public class AuthController {
         user.setEmail(registerRequestDTO.getEmail());
         user.setUsername(registerRequestDTO.getUsername());
         user.setPassword(registerRequestDTO.getPassword());
-        user.setRole(Role.USER);
+
+        if (registerRequestDTO.isAdmin()) {
+            user.setRole(Role.ADMIN);
+        } else {
+            user.setRole(Role.USER);
+        }
 
         userService.saveUser(user);
 
