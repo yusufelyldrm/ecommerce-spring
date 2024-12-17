@@ -8,6 +8,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "users")
@@ -20,11 +22,9 @@ public class User {
     @Schema(description = "User id", example = "1", required = true)
     private Integer id;
 
-
     @Schema(description = "User email", example = "yusufelyildirim@gmail.com", required = true)
     @Column(nullable = false, unique = true)
     private String email;
-
 
     @Schema(description = "User username", example = "user", required = true)
     private String username;
@@ -47,6 +47,9 @@ public class User {
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private Token token;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<Address> addressList;
 
     @PrePersist
     protected void onCreate() {

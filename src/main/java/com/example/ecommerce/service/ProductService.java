@@ -2,13 +2,11 @@ package com.example.ecommerce.service;
 
 import com.example.ecommerce.dto.ProductDTO;
 import com.example.ecommerce.dto.VariantDTO;
-import com.example.ecommerce.enums.Role;
 import com.example.ecommerce.manager.AuthManager;
 import com.example.ecommerce.models.Product;
 import com.example.ecommerce.models.ProductVariant;
 import com.example.ecommerce.repository.ProductRepository;
 import com.example.ecommerce.repository.VariantRepository;
-import com.example.ecommerce.util.ConvertDTO;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -19,16 +17,10 @@ public class ProductService {
 
     private final ProductRepository productRepository;
     private final VariantRepository variantRepository;
-    private final AuthManager authManager;
 
     public ProductService(ProductRepository productRepository, VariantRepository variantRepository, AuthManager authManager) {
         this.productRepository = productRepository;
         this.variantRepository = variantRepository;
-        this.authManager = authManager;
-    }
-
-    public boolean authenticate(String token, Role requiredRole) throws Exception {
-        return authManager.authenticate(token, requiredRole);
     }
 
     public List<ProductDTO> saveProducts(List<Product> products) {
@@ -42,26 +34,32 @@ public class ProductService {
 
         List<ProductDTO> productDTOs = new ArrayList<>();
         for (Product product : products) {
-            productDTOs.add(ConvertDTO.ProductToDTO(product));
+            ProductDTO productDTO = new ProductDTO();
+            productDTO.toDTO(product);
+            productDTOs.add(productDTO);
         }
         return productDTOs;
     }
 
     public VariantDTO saveProductVariant(ProductVariant variant) {
         variantRepository.save(variant);
-        return ConvertDTO.VariantToDTO(variant);
+        VariantDTO variantDTO = new VariantDTO();
+        return variantDTO.toDTO(variant);
     }
 
     public ProductDTO getProduct(Long productId) {
         Product product = productRepository.findProductById(productId);
-        return ConvertDTO.ProductToDTO(product);
+        ProductDTO productDTO = new ProductDTO();
+        return productDTO.toDTO(product);
     }
 
     public List<ProductDTO> getProducts() {
         List<Product> products = productRepository.findAll();
         List<ProductDTO> productDTOs = new ArrayList<>();
         for (Product product : products) {
-            productDTOs.add(ConvertDTO.ProductToDTO(product));
+            ProductDTO productDTO = new ProductDTO();
+            productDTO.toDTO(product);
+            productDTOs.add(productDTO);
         }
         return productDTOs;
     }
@@ -70,7 +68,8 @@ public class ProductService {
         Product dbProduct = productRepository.findProductById(productId);
         dbProduct.updateWith(product);
         productRepository.save(dbProduct);
-        return ConvertDTO.ProductToDTO(dbProduct);
+        ProductDTO productDTO = new ProductDTO();
+        return productDTO.toDTO(dbProduct);
     }
 
     public String deleteProduct(Long productId) {
@@ -86,7 +85,8 @@ public class ProductService {
         dbVariant.updateWith(variant);
         variantRepository.save(dbVariant);
 
-        return ConvertDTO.ProductToDTO(dbProduct);
+        ProductDTO productDTO = new ProductDTO();
+        return productDTO.toDTO(dbProduct);
     }
 
     public String deleteProductVariant(Long productId, Long variantId) {

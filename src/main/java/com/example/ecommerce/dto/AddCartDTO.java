@@ -6,7 +6,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class AddCartDTO {
+public class AddCartDTO{
     Long productVariantId;
     Integer quantity;
 }

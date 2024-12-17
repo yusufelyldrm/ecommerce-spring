@@ -42,7 +42,7 @@ public class AuthManager {
                 .compact();
     }
 
-    public String authenticateForLogin(String email, String password) throws Exception {
+    public String authenticateForLogin(String email, String password) {
         User user = userRepository.findUserByEmail(email);
 
         boolean isValid = checkLoginCredentials(email, password, user);
@@ -52,7 +52,7 @@ public class AuthManager {
 
         if (user.getToken() != null) {
             Token token = tokenRepository.findTokenByToken(user.getToken().getToken());
-            if (token != null && !isTokenExpired(token.getToken())) {
+            if (token != null && isTokenExpired(token.getToken())) {
                 return token.getToken();
             }
         }
@@ -68,7 +68,7 @@ public class AuthManager {
         return token;
     }
 
-    public boolean authenticate(String token, Role expectedRole){
+    public boolean authenticate(String token, Role expectedRole) {
         if (token.startsWith("Bearer ")) {
             token = token.substring(7);
         }
@@ -80,11 +80,7 @@ public class AuthManager {
             return false;
         }
 
-        if (isTokenExpired(token)) {
-            return false;
-        }
-
-        return true;
+        return isTokenExpired(token);
     }
 
     public boolean checkLoginCredentials(String email, String password, User user) {
@@ -98,9 +94,9 @@ public class AuthManager {
                     .parseClaimsJws(token)
                     .getBody();
             Date expiration = claims.getExpiration();
-            return expiration.before(new Date());
+            return !expiration.before(new Date());
         } catch (Exception e) {
-            return true;
+            return false;
         }
     }
 

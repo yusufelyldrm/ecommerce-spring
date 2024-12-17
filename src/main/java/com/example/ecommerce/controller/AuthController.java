@@ -1,7 +1,6 @@
 package com.example.ecommerce.controller;
 
 import com.example.ecommerce.dto.LoginRequestDTO;
-import com.example.ecommerce.dto.LoginResponseDTO;
 import com.example.ecommerce.dto.RegisterRequestDTO;
 import com.example.ecommerce.enums.Role;
 import com.example.ecommerce.manager.AuthManager;
@@ -14,20 +13,18 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import java.util.HashMap;
 
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
     private final UserService userService;
     private final AuthManager authManager;
-    private final CartService cartService;
 
-    public AuthController(UserService userService, AuthManager authManager, CartService cartService) {
+    public AuthController(UserService userService, AuthManager authManager) {
         this.userService = userService;
         this.authManager = authManager;
-        this.cartService = cartService;
     }
-
 
     @PostMapping("/register")
     public ResponseEntity<String> Register(@RequestBody RegisterRequestDTO registerRequestDTO) {
@@ -61,8 +58,10 @@ public class AuthController {
 
 
     @PostMapping("/login")
-    public LoginResponseDTO Login(@RequestBody LoginRequestDTO loginRequestDTO) throws Exception {
+    public ResponseEntity Login(@RequestBody LoginRequestDTO loginRequestDTO) throws Exception {
         String token = authManager.authenticateForLogin(loginRequestDTO.getEmail(), loginRequestDTO.getPassword());
-        return new LoginResponseDTO(token);
+        HashMap<String, String> response = new HashMap<>();
+        response.put("token", token);
+        return ResponseEntity.ok().body(response);
     }
 }

@@ -1,7 +1,6 @@
 package com.example.ecommerce.service;
 
 import com.example.ecommerce.dto.AddCartDTO;
-import com.example.ecommerce.dto.RemoveCartDTO;
 import com.example.ecommerce.manager.AuthManager;
 import com.example.ecommerce.models.Cart;
 import com.example.ecommerce.models.CartItem;
@@ -66,15 +65,15 @@ public class CartService {
         cartRepository.save(cart);
     }
 
-    public void removeFromCart(RemoveCartDTO removeCartDTO, String token) {
+    public void removeFromCart(Long productVariantId, String token) {
         User user = authManager.getUserFromToken(token);
         Cart cart = cartRepository.findCartByUserEmail(user.getEmail());
 
-        ProductVariant productVariant = variantRepository.findProductVariantById(removeCartDTO.getProductVariantId());
+        ProductVariant productVariant = variantRepository.findProductVariantById(productVariantId);
         CartItem cartItem = cartItemRepository.findCartItemByProductVariantAndCart(productVariant, cart);
 
         if (cartItem == null) {
-            throw new IllegalArgumentException("Item not found in cart for product variant ID: " + removeCartDTO.getProductVariantId());
+            throw new IllegalArgumentException("Item not found in cart for product variant ID: " + productVariantId);
         }
 
         cartItem.setQuantity(cartItem.getQuantity() - 1);
