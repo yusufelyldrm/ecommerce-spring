@@ -2,7 +2,6 @@ package com.example.ecommerce.service;
 
 import com.example.ecommerce.dto.ProductDTO;
 import com.example.ecommerce.dto.VariantDTO;
-import com.example.ecommerce.manager.AuthManager;
 import com.example.ecommerce.models.Product;
 import com.example.ecommerce.models.ProductVariant;
 import com.example.ecommerce.repository.ProductRepository;
@@ -18,7 +17,7 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final VariantRepository variantRepository;
 
-    public ProductService(ProductRepository productRepository, VariantRepository variantRepository, AuthManager authManager) {
+    public ProductService(ProductRepository productRepository, VariantRepository variantRepository) {
         this.productRepository = productRepository;
         this.variantRepository = variantRepository;
     }

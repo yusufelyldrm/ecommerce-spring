@@ -1,7 +1,4 @@
 package com.example.ecommerce.models;
-
-import com.example.ecommerce.dto.ProductDTO;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -12,12 +9,7 @@ import java.util.List;
 @Entity
 @Getter
 @Setter
-public class Product {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Schema(description = "Product id", example = "1", required = true)
-    private Long id;
+public class Product extends BaseEntity{
 
     @Schema(description = "Product name", example = "T-shirt", required = true)
     private String name;

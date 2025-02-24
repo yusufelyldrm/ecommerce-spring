@@ -36,10 +36,17 @@ public class AddressService {
     }
 
 
-    public void updateAddress(AddressDTO addressDTO, Long addressId) {
+    public String updateAddress(AddressDTO addressDTO, Long addressId, User user) {
         Address address = addressRepository.findAddressById(addressId);
+        if (address == null) {
+            return "Address not found";
+        }
+        if (!address.getUser().getId().equals(user.getId())) {
+            return "Address does not belong to user";
+        }
         address.updateWith(addressDTO);
         addressRepository.save(address);
+        return "Address updated successfully";
     }
 
     public void deleteAddress(Long addressId, User user) {

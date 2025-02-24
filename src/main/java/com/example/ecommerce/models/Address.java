@@ -8,11 +8,7 @@ import lombok.Setter;
 @Entity
 @Getter
 @Setter
-public class Address {
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long id;
-
+public class Address extends BaseEntity {
     private String firstLine; //  ör: 221.sk atakent mahallesi
     private String secondLine; // ör : blabla apartmanı B blok daire 55
 

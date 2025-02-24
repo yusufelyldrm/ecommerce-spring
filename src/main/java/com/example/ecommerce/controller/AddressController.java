@@ -1,51 +1,51 @@
 package com.example.ecommerce.controller;
 
-import com.example.ecommerce.annotations.Authenticated;
 import com.example.ecommerce.dto.AddressDTO;
-import com.example.ecommerce.manager.AuthManager;
 import com.example.ecommerce.models.User;
 import com.example.ecommerce.repository.AddressRepository;
 import com.example.ecommerce.service.AddressService;
+import org.springframework.context.ApplicationContext;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 @RestController
 @RequestMapping("/api/address")
 public class AddressController {
     private final AddressService addressService;
-    private final AuthManager authManager;
 
-    public AddressController(AddressService addressService, AddressRepository addressRepository, AuthManager authManager) {
+    public AddressController(AddressService addressService) {
         this.addressService = addressService;
-        this.authManager = authManager;
     }
 
     @PostMapping("/add")
-    @Authenticated
-    public ResponseEntity addAddress(@RequestBody AddressDTO addressDTO, @RequestHeader("Authorization") String token) {
-        addressService.addAddress(addressDTO, authManager.getUserFromToken(token));
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity addAddress(@RequestBody AddressDTO addressDTO, @AuthenticationPrincipal User user) {
+        addressService.addAddress(addressDTO,user);
         return ResponseEntity.ok("Address added successfully");
     }
 
     @PostMapping("/update/{addressId}")
-    @Authenticated
-    public ResponseEntity updateAddress(@RequestBody AddressDTO addressDTO, @PathVariable Long addressId) {
-        addressService.updateAddress(addressDTO, addressId);
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity updateAddress(@RequestBody AddressDTO addressDTO, @PathVariable Long addressId, @AuthenticationPrincipal User user) {
+        String text = addressService.updateAddress(addressDTO, addressId, user);
+        if(text.equals("Address not found") || text.equals("Address does not belong to user")) {
+            return ResponseEntity.badRequest().body(text);
+        }
         return ResponseEntity.ok("Address updated successfully");
     }
 
     @PostMapping("/delete/{addressId}")
-    @Authenticated
-    public ResponseEntity deleteAddress(@PathVariable Long addressId, @RequestHeader("Authorization") String token) {
-        User user = authManager.getUserFromToken(token);
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity deleteAddress(@PathVariable Long addressId, @AuthenticationPrincipal User user) {
         addressService.deleteAddress(addressId, user);
         return ResponseEntity.ok("Address deleted successfully");
     }
 
     @PostMapping("/get")
-    @Authenticated
-    public ResponseEntity getAddresses(@RequestHeader("Authorization") String token) {
-        User user = authManager.getUserFromToken(token);
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity getAddresses(@AuthenticationPrincipal User user) {
         return ResponseEntity.ok(addressService.getAddresses(user));
     }
 

@@ -8,11 +8,7 @@ import lombok.Setter;
 @Entity
 @Getter
 @Setter
-public class ProductVariant {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Schema(description = "Product variant id", example = "1", required = true)
-    private Long id;
+public class ProductVariant extends BaseEntity{
 
     @Schema(description = "Product variant code", example = "1234", required = true)
     private String code;

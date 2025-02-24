@@ -1,6 +1,7 @@
 package com.example.ecommerce.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.ser.Serializers;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -11,12 +12,7 @@ import java.util.List;
 @Entity
 @Getter
 @Setter
-public class Cart {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Schema(description = "Cart id", example = "1", required = true)
-    private Long id;
+public class Cart extends BaseEntity {
 
     @OneToOne
     @JoinColumn(name = "user_id")

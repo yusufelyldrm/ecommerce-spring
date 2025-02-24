@@ -10,12 +10,7 @@ import lombok.Setter;
 @Entity
 @Getter
 @Setter
-public class CartItem {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Schema(description = "Cart item id", example = "1", required = true)
-    private Long id;
+public class CartItem extends BaseEntity{
 
     @ManyToOne
     @JoinColumn(name = "product_variant_id")
@@ -33,5 +28,4 @@ public class CartItem {
     @JsonIgnore
     @Schema(description = "Cart", required = true)
     private Cart cart;
-
 }

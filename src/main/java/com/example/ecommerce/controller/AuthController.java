@@ -3,65 +3,100 @@ package com.example.ecommerce.controller;
 import com.example.ecommerce.dto.LoginRequestDTO;
 import com.example.ecommerce.dto.RegisterRequestDTO;
 import com.example.ecommerce.enums.Role;
-import com.example.ecommerce.manager.AuthManager;
 import com.example.ecommerce.models.Cart;
 import com.example.ecommerce.models.User;
-import com.example.ecommerce.service.CartService;
+import com.example.ecommerce.service.JwtService;
 import com.example.ecommerce.service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import java.util.HashMap;
+import java.util.Map;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.http.HttpStatus;
 
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
-    private final UserService userService;
-    private final AuthManager authManager;
-
-    public AuthController(UserService userService, AuthManager authManager) {
-        this.userService = userService;
-        this.authManager = authManager;
-    }
+    @Autowired
+    private AuthenticationManager authenticationManager;
+    
+    @Autowired
+    private JwtService jwtService;
+    
+    @Autowired
+    private UserService userService;
+    
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @PostMapping("/register")
-    public ResponseEntity<String> Register(@RequestBody RegisterRequestDTO registerRequestDTO) {
-        User user = userService.findByEmail(registerRequestDTO.getEmail());
-        if (user != null) {
-            return ResponseEntity.badRequest().body("User already exists");
+    public ResponseEntity<Map<String, String>> register(@RequestBody RegisterRequestDTO request) {
+        if (userService.existsByEmail(request.getEmail())) {
+            throw new RuntimeException("Email already registered");
         }
 
-        user = new User();
-        user.setEmail(registerRequestDTO.getEmail());
-        user.setUsername(registerRequestDTO.getUsername());
-        user.setPassword(registerRequestDTO.getPassword());
+        User user = new User();
+        user.setEmail(request.getEmail());
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setUsername(request.getUsername());
 
-        if (registerRequestDTO.isAdmin()) {
+        if(request.isAdmin()) {
             user.setRole(Role.ADMIN);
         } else {
             user.setRole(Role.USER);
         }
 
-        userService.saveUser(user);
+        userService.save(user);
 
         Cart cart = new Cart();
         cart.setUser(user);
-        cart.setTotalPrice(0L);
-
         user.setCart(cart);
-        userService.saveUser(user);
 
-        return ResponseEntity.ok("User registered successfully");
+        String token = jwtService.generateToken(user);
+        
+        Map<String, String> response = new HashMap<>();
+        response.put("token", token);
+        
+        return ResponseEntity.ok(response);
     }
 
-
     @PostMapping("/login")
-    public ResponseEntity Login(@RequestBody LoginRequestDTO loginRequestDTO) throws Exception {
-        String token = authManager.authenticateForLogin(loginRequestDTO.getEmail(), loginRequestDTO.getPassword());
-        HashMap<String, String> response = new HashMap<>();
-        response.put("token", token);
-        return ResponseEntity.ok().body(response);
+    public ResponseEntity<Map<String, String>> login(@RequestBody LoginRequestDTO request) {
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                    request.getEmail(),
+                    request.getPassword()
+                )
+            );
+
+            if (!authentication.isAuthenticated()) {
+                throw new BadCredentialsException("Invalid email/password");
+            }
+
+            UserDetails userDetails = userService.loadUserByUsername(request.getEmail());
+
+            String token = jwtService.generateToken(userDetails);
+            
+            return ResponseEntity.ok(Map.of(
+                "token", token,
+                "message", "Login successful"
+            ));
+
+        } catch (AuthenticationException e) {
+            return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(Map.of("error", "Invalid email or password"));
+        }
     }
 }

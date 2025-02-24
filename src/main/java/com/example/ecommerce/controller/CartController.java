@@ -1,39 +1,44 @@
 package com.example.ecommerce.controller;
 
-import com.example.ecommerce.annotations.Authenticated;
 import com.example.ecommerce.dto.*;
 import com.example.ecommerce.models.Cart;
+import com.example.ecommerce.models.User;
 import com.example.ecommerce.service.CartService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/cart")
+@RequiredArgsConstructor
 public class CartController {
     private final CartService cartService;
 
-    public CartController(CartService cartService) {
-        this.cartService = cartService;
-    }
-
     @PostMapping("/add")
-    public ResponseEntity addToCart(@RequestBody AddCartDTO addCartDTO, @RequestHeader("Authorization") String token) {
-        cartService.addToCart(addCartDTO, token);
-        return ResponseEntity.ok("Product added to cart successfully");
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity addToCart(
+        @RequestBody AddCartDTO request,
+        @AuthenticationPrincipal User currentUser
+    ) {
+        cartService.addToCart(request, currentUser);
+        return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/remove/{productVariantId}")
-    public ResponseEntity removeFromCart(@PathVariable Long productVariantId, @RequestHeader("Authorization") String token) {
-        cartService.removeFromCart(productVariantId, token);
-        return ResponseEntity.ok("Product removed from cart successfully");
+    @GetMapping
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Cart> getCart(@AuthenticationPrincipal User currentUser) {
+        return ResponseEntity.ok(cartService.getCartByUser(currentUser));
     }
 
-    @GetMapping("/list")
-    @Authenticated
-    public ResponseEntity listCart(@RequestHeader("Authorization") String token) {
-        Cart cart = cartService.listCart(token);
-        CartListDTO cartListDTO = new CartListDTO();
-        cartListDTO.toDTO(cart);
-        return ResponseEntity.ok(cartListDTO);
+    @DeleteMapping("/item/{cartItemId}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Void> removeFromCart(
+        @PathVariable Long cartItemId,
+        @AuthenticationPrincipal User currentUser
+    ) {
+        cartService.removeFromCart(cartItemId, currentUser);
+        return ResponseEntity.ok().build();
     }
 }
